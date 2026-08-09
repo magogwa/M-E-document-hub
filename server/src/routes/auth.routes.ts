@@ -95,6 +95,7 @@ authRouter.post(
       throw AppError.forbidden('Invalid email or password.');
     }
     const user = data.session.user;
+    await supabase.auth.signOut({ scope: 'local' });
     const profile = await getProfileById(user.id);
     if (!profile) throw AppError.forbidden('Access denied. Your account could not be found.');
     if (profile.status !== 'active') {
@@ -135,6 +136,7 @@ authRouter.post(
     if (error || !data.session) {
       throw AppError.unauthorized('Your session has expired. Please sign in again.');
     }
+    await supabase.auth.signOut({ scope: 'local' });
     const profile = await getProfileById(data.session.user.id);
     if (!profile || profile.status !== 'active') {
       throw AppError.forbidden('Access denied. Your account is not active.');
