@@ -26,7 +26,7 @@ notificationRouter.get(
       .from('notifications')
       .select(
         `id, user_id, actor_id, type, title, body, document_id, read_at, created_at,
-         actor:users(id, full_name)`,
+         actor:users!notifications_actor_id_fkey(id, full_name)`,
         { count: 'exact' }
       )
       .eq('user_id', user.id)
