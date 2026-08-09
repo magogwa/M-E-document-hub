@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900;
+  }
+}
+
+@layer components {
+  .sidebar-link {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white;
+  }
+  .sidebar-link-active {
+    @apply bg-brand-600 text-white;
+  }
+  .input {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 disabled:cursor-not-allowed disabled:bg-slate-100;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-slate-700;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/40 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700;
+  }
+  .btn-secondary {
+    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-ghost {
+    @apply btn text-slate-600 hover:bg-slate-100;
+  }
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white p-5 shadow-card;
+  }
+  .th {
+    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500;
+  }
+  .td {
+    @apply px-4 py-3 text-sm text-slate-700;
+  }
+}
+
+/* ==========================================================================
+   Dark theme - enabled by adding the "dark" class to <html> (Settings page)
+   ========================================================================== */
+.dark {
+  color-scheme: dark;
+}
+.dark body,
+.dark .bg-slate-50 {
+  background-color: #0f172a;
+}
+.dark .bg-slate-100 {
+  background-color: #1e293b;
+}
+.dark .bg-white {
+  background-color: #1e293b;
+}
+.dark .card {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+.dark .input {
+  background-color: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+.dark .input::placeholder {
+  color: #64748b;
+}
+.dark .label {
+  color: #cbd5e1;
+}
+.dark .th {
+  color: #94a3b8;
+}
+.dark .td {
+  color: #e2e8f0;
+}
+.dark .text-slate-900 {
+  color: #f1f5f9;
+}
+.dark .text-slate-800,
+.dark .text-slate-700 {
+  color: #e2e8f0;
+}
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: #94a3b8;
+}
+.dark .text-slate-400 {
+  color: #64748b;
+}
+.dark .text-slate-300 {
+  color: #94a3b8;
+}
+.dark .border-slate-200 {
+  border-color: #334155;
+}
+.dark .border-slate-300 {
+  border-color: #475569;
+}
+.dark .divide-slate-100 > * + * {
+  border-color: #334155;
+}
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover {
+  background-color: rgba(148, 163, 184, 0.12);
+}
+.dark .bg-slate-200 {
+  background-color: #475569;
+}
+.dark .btn-secondary {
+  background-color: #1e293b;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+.dark .btn-secondary:hover {
+  background-color: #334155;
+}
+.dark .btn-ghost {
+  color: #cbd5e1;
+}
+.dark .btn-ghost:hover {
+  background-color: #334155;
+}
+.dark .sidebar-link {
+  color: #94a3b8;
+}
