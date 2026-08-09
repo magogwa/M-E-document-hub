@@ -135,7 +135,7 @@ export function DocumentsBrowser({
           )}
           {mode === 'admin' && !hideFilters.includes('client') && (
             <select value={clientId} onChange={(e) => setClientId(e.target.value)} className="input !w-auto">
-              <option value="">All clients</option>
+              <option value="">All members</option>
               {(clients?.clients ?? []).map((c) => (
                 <option key={c.id} value={c.id}>{c.profile?.full_name ?? c.id.slice(0, 8)}</option>
               ))}

@@ -17,6 +17,7 @@ export interface ClientInfo {
   organization: string | null;
   address: string | null;
   phone: string | null;
+  can_upload: boolean;
   created_at: string;
 }
 
@@ -163,4 +164,51 @@ export interface Paged<T> {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface DocumentComment {
+  id: string;
+  document_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  author?: { id: string; full_name: string; email: string; role: Role } | null;
+}
+
+export interface ChatContact {
+  id: string;
+  full_name: string;
+  email: string;
+  role: Role;
+}
+
+export interface ChatConversation {
+  id: string;
+  counterpart: { id: string; full_name: string; email: string; role: Role } | null;
+  last_message: { content: string; created_at: string; sender_id: string } | null;
+  unread: number;
+  last_message_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string;
+  read_at: string | null;
+  created_at: string;
+  sender?: { id: string; full_name: string; role: Role } | null;
+}
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  actor_id: string | null;
+  type: 'document_upload';
+  title: string;
+  body: string | null;
+  document_id: string | null;
+  read_at: string | null;
+  created_at: string;
+  actor?: { id: string; full_name: string } | null;
 }

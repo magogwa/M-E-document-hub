@@ -47,6 +47,51 @@ function requireAdmin(user: UserProfile | undefined) {
   if (!user || user.role !== 'admin') throw AppError.forbidden('Access denied.');
 }
 
+/** Grant an activated client access to every document in the hub (idempotent). */
+async function grantAllDocumentsToClient(clientId: string, grantedById: string, ip: string | null, logLabel: string) {
+  const { data: documents } = await supabase.from('documents').select('id');
+  const documentIds = (documents ?? []).map((d) => d.id);
+  if (documentIds.length === 0) return 0;
+
+  const { data: existing } = await supabase
+    .from('document_access')
+    .select('document_id')
+    .eq('client_id', clientId);
+  const existingSet = new Set((existing ?? []).map((r) => r.document_id));
+
+  const rows = documentIds
+    .filter((documentId) => !existingSet.has(documentId))
+    .map((documentId) => ({ document_id: documentId, client_id: clientId, granted_by: grantedById }));
+  if (rows.length === 0) return 0;
+
+  const { error } = await supabase.from('document_access').upsert(rows, { onConflict: 'document_id,client_id' });
+  if (error) throw error;
+  await logActivity({
+    userId: grantedById,
+    action: ACTIVITY_ACTIONS.CLIENT_ACCESS_GRANTED_ALL,
+    metadata: { clientId, label: logLabel, documents: rows.length },
+    ipAddress: ip
+  });
+  return rows.length;
+}
+
+/** Shared activation routine: set status/can_upload + auto-share every document. */
+async function activateClient(clientRow: ClientRow, adminId: string, ip: string | null, logLabel: string) {
+  await supabase.from('users').update({ status: 'active' }).eq('id', clientRow.user_id);
+  await supabase.from('clients').update({ can_upload: true }).eq('id', clientRow.id);
+  await grantAllDocumentsToClient(clientRow.id, adminId, ip, logLabel);
+}
+
+async function deactivateClient(clientRow: ClientRow) {
+  await supabase.from('users').update({ status: 'inactive' }).eq('id', clientRow.user_id);
+  await supabase.from('clients').update({ can_upload: false }).eq('id', clientRow.id);
+}
+
+async function setClientPending(clientRow: ClientRow) {
+  await supabase.from('users').update({ status: 'pending' }).eq('id', clientRow.user_id);
+  await supabase.from('clients').update({ can_upload: false }).eq('id', clientRow.id);
+}
+
 /** GET /api/clients - list (admin) */
 clientRouter.get(
   '/',
@@ -111,7 +156,7 @@ clientRouter.get(
   asyncHandler(async (req: AuthRequest, res) => {
     requireAdmin(req.user);
     const { data: client, error } = await supabase.from('clients').select('*').eq('id', req.params.id).maybeSingle();
-    if (error || !client) throw AppError.notFound('Client not found.');
+    if (error || !client) throw AppError.notFound('Member not found.');
 
     const { data: profile } = await supabase
       .from('users')
@@ -168,13 +213,15 @@ clientRouter.post(
           user_id: account.id,
           organization: body.organization || null,
           address: body.address || null,
-          phone: body.phone || null
+          phone: body.phone || null,
+          can_upload: true
         },
         { onConflict: 'user_id' }
       )
       .select('*')
       .single();
     if (error) throw error;
+    await grantAllDocumentsToClient((client as ClientRow).id, req.user?.id ?? account.id, ipOf(req), 'admin_created');
     await logActivity({
       userId: req.user?.id,
       action: ACTIVITY_ACTIONS.CLIENT_CREATED,
@@ -197,17 +244,29 @@ clientRouter.post(
       .eq('role', 'client')
       .eq('status', 'pending');
     const ids = (pending ?? []).map((u) => u.id);
+    const adminId = req.user?.id ?? '';
+
+    let grantedDocs = 0;
     if (ids.length > 0) {
+      const { data: clientRows } = await supabase
+        .from('clients')
+        .select('*')
+        .in('user_id', ids);
+      for (const client of clientRows as ClientRow[]) {
+        grantedDocs += await grantAllDocumentsToClient(client.id, adminId, ipOf(req), 'activate_all');
+      }
       const { error } = await supabase.from('users').update({ status: 'active' }).in('id', ids);
       if (error) throw error;
+      const { error: uploadError } = await supabase.from('clients').update({ can_upload: true }).in('user_id', ids);
+      if (uploadError) throw uploadError;
     }
     await logActivity({
-      userId: req.user?.id,
+      userId: adminId,
       action: ACTIVITY_ACTIONS.CLIENT_STATUS,
-      metadata: { bulk: true, count: ids.length, status: 'active' },
+      metadata: { bulk: true, count: ids.length, status: 'active', documentsGranted: grantedDocs },
       ipAddress: ipOf(req)
     });
-    res.json({ success: true, activated: ids.length });
+    res.json({ success: true, activated: ids.length, documentsGranted: grantedDocs });
   })
 );
 
@@ -222,7 +281,7 @@ clientRouter.patch(
       .select('*')
       .eq('id', req.params.id)
       .maybeSingle();
-    if (clientError || !client) throw AppError.notFound('Client not found.');
+    if (clientError || !client) throw AppError.notFound('Member not found.');
     const body = updateClientSchema.parse(req.body ?? {});
 
     const updates: Record<string, unknown> = {};
@@ -257,16 +316,23 @@ clientRouter.post(
       .select('*')
       .eq('id', req.params.id)
       .maybeSingle();
-    if (clientError || !client) throw AppError.notFound('Client not found.');
+    if (clientError || !client) throw AppError.notFound('Member not found.');
+    const clientRow = client as ClientRow;
 
-    const { error } = await supabase.from('users').update({ status }).eq('id', client.user_id);
-    if (error) throw error;
+    if (status === 'active') {
+      await activateClient(clientRow, req.user?.id ?? '', ipOf(req), 'single_activate');
+    } else if (status === 'inactive') {
+      await deactivateClient(clientRow);
+    } else {
+      await setClientPending(clientRow);
+    }
+
     await logActivity({
       userId: req.user?.id,
       action: ACTIVITY_ACTIONS.CLIENT_STATUS,
-      metadata: { clientId: client.id, status },
+      metadata: { clientId: clientRow.id, status },
       ipAddress: ipOf(req)
     });
-    res.json({ success: true, message: `Client ${status === 'active' ? 'activated' : status === 'inactive' ? 'deactivated' : 'set to pending'}.` });
+    res.json({ success: true, message: `Member ${status === 'active' ? 'activated' : status === 'inactive' ? 'deactivated' : 'set to pending'}.` });
   })
 );

@@ -7,6 +7,8 @@ import { accessRouter } from './access.routes.js';
 import { activityRouter } from './activity.routes.js';
 import { settingsRouter } from './settings.routes.js';
 import { dashboardRouter } from './dashboard.routes.js';
+import { chatRouter } from './chat.routes.js';
+import { notificationRouter } from './notifications.routes.js';
 
 export const apiRouter = Router();
 
@@ -18,3 +20,5 @@ apiRouter.use('/access', accessRouter);
 apiRouter.use('/activity', activityRouter);
 apiRouter.use('/settings', settingsRouter);
 apiRouter.use('/dashboard', dashboardRouter);
+apiRouter.use('/chat', chatRouter);
+apiRouter.use('/notifications', notificationRouter);

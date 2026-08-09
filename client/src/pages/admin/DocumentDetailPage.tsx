@@ -54,7 +54,7 @@ export function AdminDocumentDetailPage() {
   async function handleRevoke(accessId: string) {
     try {
       await client.delete(`/access/${accessId}`);
-      toast.success('Access removed for this client.');
+      toast.success('Access removed for this member.');
       setRevokeId(null);
       reload();
     } catch (err) {
@@ -200,16 +200,16 @@ export function AdminDocumentDetailPage() {
 
             <div className="card">
               <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900">
-                <Users className="h-4 w-4 text-brand-600" /> Client access ({data?.access?.length ?? 0})
+                <Users className="h-4 w-4 text-brand-600" /> Member access ({data?.access?.length ?? 0})
               </h2>
               {!data?.access?.length ? (
-                <EmptyState title="No clients have access yet" description="Share this document from the Access page or when uploading." />
+                <EmptyState title="No members have access yet" description="Share this document from the Access page or when uploading." />
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {(data?.access ?? []).map((a) => (
                     <li key={a.id} className="flex items-center justify-between gap-3 py-2.5">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-slate-800">{a.client_name || a.client_org || 'Client'}</p>
+                        <p className="truncate text-sm font-medium text-slate-800">{a.client_name || a.client_org || 'Member'}</p>
                         <p className="truncate text-xs text-slate-500">{a.client_email ?? a.client_org}</p>
                         <p className="text-xs text-slate-400">Since {formatDate(a.granted_at)}</p>
                       </div>
@@ -256,8 +256,8 @@ export function AdminDocumentDetailPage() {
 
       <ConfirmDialog
         open={revokeId !== null}
-        title="Remove client access"
-        message="This client will no longer be able to see or download this document."
+        title="Remove member access"
+        message="This member will no longer be able to see or download this document."
         confirmLabel="Remove access"
         danger
         onConfirm={() => void (revokeId && handleRevoke(revokeId))}

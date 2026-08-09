@@ -1,4 +1,4 @@
-import { useState, type ComponentType, type ReactNode } from 'react';
+import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
@@ -16,9 +16,12 @@ import {
   UserCircle,
   Menu,
   X,
-  BarChart
+  BarChart,
+  MessageSquare,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { client } from '../../lib/api';
 import { initials } from '../../lib/format';
 import type { Role } from '../../types';
 
@@ -33,9 +36,10 @@ const ADMIN_NAV: NavItem[] = [
   { to: '/admin/documents', label: 'Documents', icon: FileText },
   { to: '/admin/upload', label: 'Upload Document', icon: UploadCloud },
   { to: '/admin/categories', label: 'Categories', icon: Folder },
-  { to: '/admin/clients', label: 'Clients', icon: Users },
+  { to: '/admin/clients', label: 'Members', icon: Users },
   { to: '/admin/access', label: 'Access Management', icon: Share2 },
   { to: '/admin/activity', label: 'Activity Logs', icon: BarChart },
+  { to: '/admin/chat', label: 'Chat', icon: MessageSquare },
   { to: '/admin/settings', label: 'Settings', icon: SettingsIcon }
 ];
 
@@ -45,6 +49,7 @@ const CLIENT_NAV: NavItem[] = [
   { to: '/client/upload', label: 'Upload Document', icon: UploadCloud },
   { to: '/client/categories', label: 'Categories', icon: Folder },
   { to: '/client/recent', label: 'Recent Documents', icon: Clock },
+  { to: '/client/chat', label: 'Chat', icon: MessageSquare },
   { to: '/profile', label: 'Profile', icon: UserCircle }
 ];
 
@@ -52,6 +57,26 @@ export function AppShell({ role, children }: { role: Role; children: ReactNode }
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    const refresh = () => {
+      client
+        .get<{ count: number }>('/notifications/unread-count')
+        .then((json) => {
+          if (alive) setUnread(json.count);
+        })
+        .catch(() => undefined);
+    };
+    refresh();
+    const timer = setInterval(refresh, 15000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [user]);
 
   const nav = role === 'admin' ? ADMIN_NAV : CLIENT_NAV;
   const base = role === 'admin' ? '/admin' : '/client';
@@ -70,7 +95,7 @@ export function AppShell({ role, children }: { role: Role; children: ReactNode }
         </div>
         <div className="leading-tight">
           <p className="text-sm font-semibold text-white">M&E Document Hub</p>
-          <p className="text-xs text-slate-400">{role === 'admin' ? 'Administrator' : 'Client Portal'}</p>
+          <p className="text-xs text-slate-400">{role === 'admin' ? 'Administrator' : 'Member Portal'}</p>
         </div>
       </div>
 
@@ -136,14 +161,27 @@ export function AppShell({ role, children }: { role: Role; children: ReactNode }
             </button>
             <div className="leading-tight">
               <p className="text-sm font-semibold text-slate-900">
-                {role === 'admin' ? 'Administrator Dashboard' : 'Client Dashboard'}
+                {role === 'admin' ? 'Administrator Dashboard' : 'Member Dashboard'}
               </p>
               <p className="hidden text-xs text-slate-500 sm:block">Secure Document Management</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/notifications')}
+              title="Notifications"
+              className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-brand-600"
+            >
+              <Bell className="h-5 w-5" />
+              {unread > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+                  {unread > 99 ? '99+' : unread}
+                </span>
+              )}
+            </button>
             <span className="hidden rounded-full bg-brand-50 px-3 py-1 text-xs font-medium capitalize text-brand-700 sm:block">
-              {role}
+              {role === 'admin' ? 'Admin' : 'Member'}
             </span>
             <button
               type="button"

@@ -16,7 +16,7 @@ export function AdminDashboardPage() {
 
   return (
     <AppShell role="admin">
-      <PageHeader title="Dashboard" subtitle="Overview of your document library, clients and recent activity." />
+      <PageHeader title="Dashboard" subtitle="Overview of your document library, members and recent activity." />
 
       {loading && <Spinner label="Loading dashboard…" />}
       {!loading && error && <ErrorState message={error} onRetry={reload} />}
@@ -25,7 +25,7 @@ export function AdminDashboardPage() {
         <div className="space-y-6">
 <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
             <StatCard icon={<FileText className="h-5 w-5" />} label="Total documents" value={String(data.totals.documents)} hint={`${data.totals.documentsThisMonth} this month`} />
-            <StatCard icon={<UsersIcon />} label="Total clients" value={String(data.totals.clients)} hint={`${data.totals.activeClients} active`} />
+            <StatCard icon={<UsersIcon />} label="Total members" value={String(data.totals.clients)} hint={`${data.totals.activeClients} active`} />
             <StatCard icon={<Calendar className="h-5 w-5" />} label="Uploads this month" value={String(data.totals.documentsThisMonth)} hint="New documents" />
             <StatCard icon={<DatabaseIcon />} label="Storage used" value={formatBytes(data.totals.storageBytes)} hint={data.totals.storageLimitMB > 0 ? `of ${formatBytes(data.totals.storageLimitMB * 1024 * 1024)} limit` : 'Unlimited'} />
           </div>
@@ -114,8 +114,8 @@ export function AdminDashboardPage() {
               <h2 className="mb-3 text-sm font-semibold text-slate-900">Quick actions</h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 <QuickAction to="/admin/upload" icon={<UploadCloud className="h-5 w-5" />} title="Upload a document" description="Store a new file in the cloud" />
-                <QuickAction to="/admin/access" icon={<Share2 className="h-5 w-5" />} title="Share documents" description="Manage client access" />
-                <QuickAction to="/admin/clients" icon={<UsersIcon />} title="Manage clients" description="Create or activate accounts" />
+                <QuickAction to="/admin/access" icon={<Share2 className="h-5 w-5" />} title="Share documents" description="Manage member access" />
+                <QuickAction to="/admin/clients" icon={<UsersIcon />} title="Manage members" description="Create or activate accounts" />
                 <QuickAction to="/admin/categories" icon={<FolderOpen className="h-5 w-5" />} title="Categories" description="Organize your library" />
               </div>
             </div>

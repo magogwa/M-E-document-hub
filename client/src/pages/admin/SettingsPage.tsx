@@ -101,20 +101,14 @@ export function AdminSettingsPage() {
 
           <div className="card space-y-3">
             <ToggleRow
-              title="Client registration"
-              description="Allow new clients to create accounts themselves. Otherwise only you can create clients."
+              title="Member registration"
+              description="Allow new members to create accounts themselves. Otherwise only you can create them."
               checked={current.allowClientRegistration}
               onChange={(v) => setForm({ ...current, allowClientRegistration: v })}
             />
             <ToggleRow
-              title="Client document uploads"
-              description="Allow clients to upload documents (visible only to themselves)."
-              checked={current.allowClientUpload}
-              onChange={(v) => setForm({ ...current, allowClientUpload: v })}
-            />
-            <ToggleRow
               title="Email notifications"
-              description="Send clients an email when documents are shared with them (requires EMAIL_API_KEY)."
+              description="Send members an email when documents are shared with them (requires EMAIL_API_KEY)."
               checked={current.emailNotifications}
               onChange={(v) => setForm({ ...current, emailNotifications: v })}
             />

@@ -14,6 +14,7 @@ import { getClientByUserId } from '../services/user.service.js';
 import { getSettings } from '../services/settings.service.js';
 import { buildObjectPath, createSignedUrl, uploadFile, deleteFiles } from '../services/storage.service.js';
 import { sendEmail } from '../services/email.service.js';
+import { notifyDocumentUpload } from '../services/notifications.service.js';
 import { logError } from '../libs/logger.js';
 import type { ClientRow, DocumentRow, DocumentVersion, UserProfile } from '../types.js';
 
@@ -214,11 +215,6 @@ documentRouter.post(
   upload.single('file'),
   asyncHandler(async (req: AuthRequest, res) => {
     const user = req.user as UserProfile;
-    const settings = await getSettings();
-
-    if (user.role === 'client' && !settings.allowClientUpload) {
-      throw AppError.forbidden('Access denied. Uploading documents is not enabled for clients.');
-    }
 
     const meta = createSchema.parse({
       title: req.body?.title ?? req.body?.json_title,
@@ -249,9 +245,8 @@ documentRouter.post(
     let clientIds: string[] = [];
     if (user.role === 'admin') {
       clientIds = meta.clientIds ?? [];
-    } else {
-      const self = await clientOfUser(user);
-      if (!self) throw AppError.badRequest('Client profile missing. Contact an administrator.');
+    }
+    if (clientIds.length === 0) {
       const { data: activeUsers } = await supabase
         .from('users')
         .select('id')
@@ -308,6 +303,13 @@ documentRouter.post(
     if (clientIds.length > 0) {
       await grantDocumentAccess(documentId, clientIds, user.id, ipOf(req));
     }
+
+    await notifyDocumentUpload({
+      actorId: user.id,
+      actorName: user.full_name,
+      documentId,
+      documentTitle: meta.title
+    });
 
     res.status(201).json({ success: true, document, clientIds });
   })
@@ -636,5 +638,96 @@ documentRouter.get(
       ipAddress: ipOf(req)
     });
     res.json({ success: true, signedUrl, fileName: (version as DocumentVersion).file_name });
+  })
+);
+
+// ============================================================================
+// DOCUMENT COMMENTS - anyone with access to the document can comment
+// ============================================================================
+const commentSchema = z.object({
+  content: z.string().min(1).max(2000).trim()
+});
+
+documentRouter.get(
+  '/:id/comments',
+  requireAuth,
+  asyncHandler(async (req: AuthRequest, res) => {
+    const user = req.user as UserProfile;
+    const document = await findDocument(param(req, 'id'));
+    if (!(await readableByUser(user, document))) {
+      throw AppError.forbidden('Access denied. This document is not shared with you.');
+    }
+
+    const { data, error } = await supabase
+      .from('document_comments')
+      .select(`id, content, created_at, user_id, author:users(id, full_name, email, role)`)
+      .eq('document_id', document.id)
+      .order('created_at', { ascending: true })
+      .limit(500);
+    if (error) throw error;
+    res.json({ items: data ?? [] });
+  })
+);
+
+documentRouter.post(
+  '/:id/comments',
+  requireAuth,
+  asyncHandler(async (req: AuthRequest, res) => {
+    const user = req.user as UserProfile;
+    const document = await findDocument(param(req, 'id'));
+    if (!(await readableByUser(user, document))) {
+      throw AppError.forbidden('Access denied. This document is not shared with you.');
+    }
+    const { content } = commentSchema.parse(req.body ?? {});
+
+    const { data: comment, error } = await supabase
+      .from('document_comments')
+      .insert({ document_id: document.id, user_id: user.id, content })
+      .select(`id, content, created_at, user_id, author:users(id, full_name, email, role)`)
+      .single();
+    if (error) throw error;
+
+    await logActivity({
+      userId: user.id,
+      documentId: document.id,
+      action: ACTIVITY_ACTIONS.COMMENT_ADDED,
+      metadata: { commentId: (comment as Record<string, unknown>).id },
+      ipAddress: ipOf(req)
+    });
+    res.status(201).json({ success: true, comment });
+  })
+);
+
+documentRouter.delete(
+  '/:id/comments/:commentId',
+  requireAuth,
+  asyncHandler(async (req: AuthRequest, res) => {
+    const user = req.user as UserProfile;
+    const document = await findDocument(param(req, 'id'));
+    if (!(await readableByUser(user, document))) {
+      throw AppError.forbidden('Access denied. This document is not shared with you.');
+    }
+
+    const { data: comment, error: findError } = await supabase
+      .from('document_comments')
+      .select('id, user_id')
+      .eq('id', param(req, 'commentId'))
+      .eq('document_id', document.id)
+      .maybeSingle();
+    if (findError || !comment) throw AppError.notFound('Comment not found.');
+
+    if (user.role !== 'admin' && comment.user_id !== user.id) {
+      throw AppError.forbidden('You can only delete your own comments.');
+    }
+    await supabase.from('document_comments').delete().eq('id', comment.id);
+
+    await logActivity({
+      userId: user.id,
+      documentId: document.id,
+      action: ACTIVITY_ACTIONS.COMMENT_DELETED,
+      metadata: { commentId: comment.id },
+      ipAddress: ipOf(req)
+    });
+    res.json({ success: true, message: 'Comment deleted.' });
   })
 );

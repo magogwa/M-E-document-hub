@@ -19,12 +19,11 @@ export function ClientUploadPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const { data: settings, loading: settingsLoading } = useData(
-    () => client.get<{ settings: { appName: string; allowClientUpload: boolean; maxFileSizeMB: number } }>('/settings'),
+    () => client.get<{ settings: { appName: string; maxFileSizeMB: number } }>('/settings'),
     []
   );
   const { data: categories } = useData(() => client.get<{ categories: { id: string; name: string }[] }>('/categories'), []);
 
-  const allowUpload = settings?.settings.allowClientUpload ?? false;
   const maxMb = settings?.settings.maxFileSizeMB ?? 25;
 
   async function onSubmit(e: FormEvent) {
@@ -58,20 +57,12 @@ export function ClientUploadPage() {
     <AppShell role="client">
       <PageHeader
         title="Upload a document"
-        subtitle="Share a file with everyone - your upload becomes visible to all clients and the administrator."
+        subtitle="Share a file with everyone - your upload becomes visible to all members and the administrator."
       />
 
       {settingsLoading && <Spinner label="Loading…" />}
 
-      {!settingsLoading && !allowUpload && (
-        <div className="card max-w-2xl">
-          <p className="text-sm text-slate-600">
-            Uploading documents is currently disabled for clients. Please contact your administrator to enable it.
-          </p>
-        </div>
-      )}
-
-      {!settingsLoading && allowUpload && (
+      {!settingsLoading && (
         <form onSubmit={onSubmit} className="mx-auto max-w-2xl space-y-5">
           <div className="card">
             <label
@@ -111,7 +102,7 @@ export function ClientUploadPage() {
           </div>
 
           <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800">
-            This document will be visible to all clients and the administrator immediately after upload.
+            This document will be visible to all members and the administrator immediately after upload.
           </div>
 
           <button type="submit" className="btn-primary" disabled={submitting || !file}>

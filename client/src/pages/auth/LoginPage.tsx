@@ -75,7 +75,7 @@ export function LoginPage() {
       <p className="mt-6 text-center text-sm text-slate-500">
         No account yet?{' '}
         <Link to="/register" className="font-medium text-brand-600 hover:text-brand-700">
-          Request client access
+          Request member access
         </Link>
       </p>
     </AuthShell>

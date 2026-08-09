@@ -16,6 +16,7 @@ export function UploadDocumentPage() {
   const [categoryId, setCategoryId] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [clientIds, setClientIds] = useState<string[]>([]);
+  const [autoShare, setAutoShare] = useState(true);
   const [status, setStatus] = useState<'active' | 'archived'>('active');
   const [submitting, setSubmitting] = useState(false);
 
@@ -39,7 +40,7 @@ export function UploadDocumentPage() {
     form.append('title', title);
     form.append('description', description);
     if (categoryId) form.append('categoryId', categoryId);
-    if (clientIds.length) form.append('clientIds', JSON.stringify(clientIds));
+    if (!autoShare && clientIds.length) form.append('clientIds', JSON.stringify(clientIds));
     form.append('status', status);
 
     try {
@@ -57,7 +58,7 @@ export function UploadDocumentPage() {
     <form onSubmit={onSubmit} className="mx-auto max-w-2xl space-y-5">
       <PageHeader
         title="Upload Document"
-        subtitle="Securely store a new document in the cloud and optionally share it with clients."
+        subtitle="Securely store a new document in the cloud and optionally share it with members."
       />
 
       <div className="card">
@@ -116,31 +117,49 @@ export function UploadDocumentPage() {
         </div>
 
         <div>
-          <span className="label">Share with clients</span>
-          <p className="mb-2 text-xs text-slate-500">Selected clients will receive email notifications with access links. You can manage access later.</p>
-          {clientOptions.length === 0 ? (
-            <p className="text-sm text-slate-400">No clients yet - create clients first, or share this document later from Access Management.</p>
-          ) : (
-            <div className="grid max-h-56 gap-1 overflow-y-auto rounded-lg border border-slate-200 p-2 sm:grid-cols-2">
-              {clientOptions.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-slate-50">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                    checked={clientIds.includes(c.id)}
-                    onChange={(e) =>
-                      setClientIds((prev) =>
-                        e.target.checked ? [...prev, c.id] : prev.filter((id) => id !== c.id)
-                      )
-                    }
-                  />
-                  <span className="truncate">{c.profile?.full_name}</span>
-                  {c.organization && <span className="truncate text-xs text-slate-400">· {c.organization}</span>}
-                </label>
-              ))}
-            </div>
-          )}
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+              checked={autoShare}
+              onChange={(e) => setAutoShare(e.target.checked)}
+            />
+            Auto-share with all active members
+          </label>
+          <p className="mt-1 text-xs text-slate-500">
+            The document is shared automatically with every active member (they get email notifications). Uncheck to choose
+            specific members instead.
+          </p>
         </div>
+
+        {!autoShare && (
+          <div>
+            <span className="label">Share with members</span>
+            <p className="mb-2 text-xs text-slate-500">Selected members will receive email notifications with access links. You can manage access later.</p>
+            {clientOptions.length === 0 ? (
+              <p className="text-sm text-slate-400">No members yet - create them first, or share this document later from Access Management.</p>
+            ) : (
+              <div className="grid max-h-56 gap-1 overflow-y-auto rounded-lg border border-slate-200 p-2 sm:grid-cols-2">
+                {clientOptions.map((c) => (
+                  <label key={c.id} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-slate-50">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                      checked={clientIds.includes(c.id)}
+                      onChange={(e) =>
+                        setClientIds((prev) =>
+                          e.target.checked ? [...prev, c.id] : prev.filter((id) => id !== c.id)
+                        )
+                      }
+                    />
+                    <span className="truncate">{c.profile?.full_name}</span>
+                    {c.organization && <span className="truncate text-xs text-slate-400">· {c.organization}</span>}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="card space-y-4 !bg-slate-50">

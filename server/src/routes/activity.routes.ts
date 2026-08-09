@@ -11,7 +11,8 @@ const ACTION_VALUES = new Set([
   'login', 'logout', 'register', 'document_upload', 'document_download',
   'document_preview', 'document_delete', 'document_update', 'document_version_upload',
   'access_granted', 'access_revoked', 'client_created', 'client_updated',
-  'client_status_changed', 'password_reset', 'password_changed', 'settings_updated'
+  'client_status_changed', 'client_access_granted_all', 'comment_added', 'comment_deleted',
+  'password_reset', 'password_changed', 'settings_updated'
 ]);
 
 /** GET /api/activity?action=&userId=&page=&limit= - admin activity log */

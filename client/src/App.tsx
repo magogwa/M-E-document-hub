@@ -19,6 +19,8 @@ import { ClientMyDocumentsPage } from './pages/client/MyDocumentsPage';
 import { ClientCategoriesPage } from './pages/client/CategoriesPage';
 import { ClientRecentDocumentsPage } from './pages/client/RecentDocumentsPage';
 import { ClientUploadPage } from './pages/client/UploadDocumentPage';
+import { ChatPage } from './pages/ChatPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { ProfilePage } from './pages/ProfilePage';
 
 function RedirectHome() {
@@ -47,6 +49,8 @@ export default function App() {
               <Route path="/admin/access" element={<AdminAccessManagementPage />} />
               <Route path="/admin/activity" element={<AdminActivityLogsPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              <Route path="/admin/chat" element={<ChatPage role="admin" />} />
+              <Route path="/notifications" element={<NotificationsPage role="admin" />} />
             </Route>
 
             <Route element={<RequireRole role="client" />}>
@@ -55,6 +59,8 @@ export default function App() {
               <Route path="/client/upload" element={<ClientUploadPage />} />
               <Route path="/client/recent" element={<ClientRecentDocumentsPage />} />
               <Route path="/client/categories" element={<ClientCategoriesPage />} />
+              <Route path="/client/chat" element={<ChatPage role="client" />} />
+              <Route path="/notifications" element={<NotificationsPage role="client" />} />
             </Route>
 
             <Route path="/profile" element={<ProfilePage />} />

@@ -33,7 +33,7 @@ export function AdminAccessManagementPage() {
 
   async function handleGrant() {
     if (!documentId || selected.length === 0) {
-      toast.error('Select a document and at least one client.');
+      toast.error('Select a document and at least one member.');
       return;
     }
     setGranting(true);
@@ -42,7 +42,7 @@ export function AdminAccessManagementPage() {
         documentId,
         clientIds: selected
       });
-      toast.success(`Access granted to ${json.granted.length} client(s).`);
+      toast.success(`Access granted to ${json.granted.length} member(s).`);
       setSelected([]);
       reload();
     } catch (err) {
@@ -60,7 +60,7 @@ export function AdminAccessManagementPage() {
         documentId,
         grantToAll: true
       });
-      toast.success(`Access granted to all active clients (${json.granted.length}).`);
+      toast.success(`Access granted to all active members (${json.granted.length}).`);
       setSelected([]);
       setGrantAll(false);
       reload();
@@ -87,7 +87,7 @@ export function AdminAccessManagementPage() {
     <AppShell role="admin">
       <PageHeader
         title="Access Management"
-        subtitle="Share documents with clients and revoke access at any time. Clients receive email notifications when access is granted."
+        subtitle="Share documents with members and revoke access at any time. Members receive email notifications when access is granted."
       />
 
       <div className="card mb-5 space-y-4">
@@ -102,10 +102,10 @@ export function AdminAccessManagementPage() {
             </select>
           </div>
           <div>
-            <span className="label">2 · Select clients to share with</span>
+<span className="label">2 · Select members to share with</span>
             {eligibleClients.length === 0 ? (
-              <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
-                No active clients available. Create or activate clients first.
+              <p className="text-sm text-slate-400">
+                No active members available. Create or activate members first.
               </p>
             ) : (
               <div className="grid max-h-36 gap-1 overflow-y-auto rounded-lg border border-slate-200 p-2 sm:grid-cols-2">
@@ -131,7 +131,7 @@ export function AdminAccessManagementPage() {
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" className="btn-primary" disabled={granting || !documentId || selected.length === 0} onClick={handleGrant}>
             <UserPlus className="h-4 w-4" />
-            {granting ? 'Granting…' : `Grant access${selected.length ? ` (${selected.length} client${selected.length > 1 ? 's' : ''})` : ''}`}
+            {granting ? 'Granting…' : `Grant access${selected.length ? ` (${selected.length} member${selected.length > 1 ? 's' : ''})` : ''}`}
           </button>
           <button
             type="button"
@@ -140,7 +140,7 @@ export function AdminAccessManagementPage() {
             onClick={() => setGrantAll(true)}
           >
             <Users className="h-4 w-4" />
-            Grant to all clients ({eligibleClients.length})
+            Grant to all members ({eligibleClients.length})
           </button>
         </div>
       </div>
@@ -163,7 +163,7 @@ export function AdminAccessManagementPage() {
               <thead className="border-b border-slate-200 bg-slate-50">
                 <tr>
                   <th className="th">Document</th>
-                  <th className="th">Client</th>
+                  <th className="th">Member</th>
                   <th className="th">Status</th>
                   <th className="th">Granted</th>
                   <th className="th text-right">Actions</th>
@@ -177,7 +177,7 @@ export function AdminAccessManagementPage() {
                       <p className="text-xs text-slate-500">{g.document_id.slice(0, 8)}</p>
                     </td>
                     <td className="td">
-                      <p className="text-slate-800">{g.client_name || g.client_org || 'Client'}</p>
+                      <p className="text-slate-800">{g.client_name || g.client_org || 'Member'}</p>
                       <p className="text-xs text-slate-500">{g.client_email}</p>
                     </td>
                     <td className="td"><StatusBadge status={g.client_status || 'active'} /></td>
@@ -199,8 +199,8 @@ export function AdminAccessManagementPage() {
 
       <ConfirmDialog
         open={grantAll}
-        title="Share with all clients"
-        message={`Every active client (${eligibleClients.length}) will immediately be granted access to this document. You can still remove individual clients afterwards.`}
+        title="Share with all members"
+        message={`Every active member (${eligibleClients.length}) will immediately be granted access to this document. You can still remove individual members afterwards.`}
         confirmLabel="Grant to all"
         onConfirm={handleGrantAll}
         onCancel={() => setGrantAll(false)}
@@ -209,7 +209,7 @@ export function AdminAccessManagementPage() {
       <ConfirmDialog
         open={revokeId !== null}
         title="Remove access"
-        message="The client will immediately lose access to this document and its versions."
+        message="The member will immediately lose access to this document and its versions."
         confirmLabel="Remove"
         danger
         onConfirm={handleRevoke}

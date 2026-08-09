@@ -54,7 +54,7 @@ export function RegisterPage() {
   }
 
   return (
-    <AuthShell title="Request client access" subtitle="Create an account to view shared documents">
+    <AuthShell title="Request member access" subtitle="Create an account to view shared documents">
       <form onSubmit={onSubmit} className="space-y-4">
         {error && <ErrorAlert message={error} />}
         <div>

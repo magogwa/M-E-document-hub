@@ -61,15 +61,15 @@ export function AdminClientsPage() {
           address: form.address,
           phone: form.phone
         });
-        toast.success('Client updated.');
+        toast.success('Member updated.');
       } else {
         await client.post('/clients', form);
-        toast.success('Client account created. The client can now sign in.');
+        toast.success('Member account created. The member can now sign in.');
       }
       setModalOpen(false);
       reload();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not save the client.');
+      toast.error(err instanceof Error ? err.message : 'Could not save the member.');
     } finally {
       setSaving(false);
     }
@@ -80,11 +80,11 @@ export function AdminClientsPage() {
     setBusyId(confirmStatus.client.id);
     try {
       await client.post(`/clients/${confirmStatus.client.id}/status`, { status: confirmStatus.status });
-      toast.success(confirmStatus.status === 'active' ? 'Client activated.' : 'Client deactivated.');
+      toast.success(confirmStatus.status === 'active' ? 'Member activated.' : 'Member deactivated.');
       setConfirmStatus(null);
       reload();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not update client status.');
+      toast.error(err instanceof Error ? err.message : 'Could not update member status.');
     } finally {
       setBusyId(null);
     }
@@ -96,11 +96,11 @@ export function AdminClientsPage() {
     setActivatingAll(true);
     try {
       const json = await client.post<{ activated: number }>('/clients/activate-all');
-      toast.success(`${json.activated} pending client(s) activated.`);
+      toast.success(`${json.activated} pending member(s) activated.`);
       setConfirmActivateAll(false);
       reload();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not activate clients.');
+      toast.error(err instanceof Error ? err.message : 'Could not activate members.');
     } finally {
       setActivatingAll(false);
     }
@@ -109,8 +109,8 @@ export function AdminClientsPage() {
   return (
     <AppShell role="admin">
       <PageHeader
-        title="Clients"
-        subtitle="Create and manage client accounts. Only active clients can sign in and see shared documents."
+        title="Members"
+        subtitle="Create and manage member accounts. Only active members can sign in and see shared documents."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {pendingCount > 0 && (
@@ -119,7 +119,7 @@ export function AdminClientsPage() {
                 className="btn-secondary"
                 disabled={activatingAll}
                 onClick={() => setConfirmActivateAll(true)}
-                title="Activate every client that is still pending"
+                title="Activate every member that is still pending"
               >
                 <Users className="h-4 w-4" /> Activate all ({pendingCount})
               </button>
@@ -136,9 +136,9 @@ export function AdminClientsPage() {
       {!loading && !error && (data?.clients?.length ?? 0) === 0 && (
         <div className="card">
           <EmptyState
-            title="No clients yet"
-            description="Create your first client account so you can share documents with them."
-            action={<button type="button" className="btn-primary" onClick={openCreate}><Plus className="h-4 w-4" /> Add client</button>}
+            title="No members yet"
+            description="Create your first member account so you can share documents with them."
+            action={<button type="button" className="btn-primary" onClick={openCreate}><Plus className="h-4 w-4" /> Add member</button>}
           />
         </div>
       )}
@@ -149,7 +149,7 @@ export function AdminClientsPage() {
             <table className="w-full min-w-[760px]">
               <thead className="border-b border-slate-200 bg-slate-50">
                 <tr>
-                  <th className="th">Client</th>
+                  <th className="th">Member</th>
                   <th className="th">Organization</th>
                   <th className="th">Status</th>
                   <th className="th">Docs</th>
@@ -184,7 +184,7 @@ export function AdminClientsPage() {
                         <button type="button" className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-brand-600" title="Edit" onClick={() => openEdit(c)}>
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button type="button" className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" title="Delete" disabled={!c.profile} onClick={() => toast('Deleting client accounts is not supported. Deactivate instead.', { icon: 'ℹ️' })}>
+                        <button type="button" className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" title="Delete" disabled={!c.profile} onClick={() => toast('Deleting member accounts is not supported. Deactivate instead.', { icon: 'ℹ️' })}>
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
@@ -197,7 +197,7 @@ export function AdminClientsPage() {
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit client' : 'New client account'}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit member' : 'New member account'}>
         <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className="label" htmlFor="fullName">Full name *</label>
@@ -229,15 +229,15 @@ export function AdminClientsPage() {
           </div>
           <div className="flex justify-end gap-2">
             <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>
-            <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving…' : editing ? 'Save changes' : 'Create client'}</button>
+            <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving…' : editing ? 'Save changes' : 'Create member'}</button>
           </div>
         </form>
       </Modal>
 
       <ConfirmDialog
         open={confirmActivateAll}
-        title="Activate all pending clients"
-        message={`${pendingCount} client(s) are currently pending. They will be able to sign in and access shared documents immediately.`}
+        title="Activate all pending members"
+        message={`${pendingCount} member(s) are currently pending. They will be able to sign in, access all documents, upload, comment and chat immediately.`}
         confirmLabel={`Activate ${pendingCount}`}
         loading={activatingAll}
         onConfirm={handleActivateAll}
@@ -246,10 +246,10 @@ export function AdminClientsPage() {
 
       <ConfirmDialog
         open={confirmStatus !== null}
-        title={confirmStatus?.status === 'active' ? 'Activate client' : 'Deactivate client'}
+        title={confirmStatus?.status === 'active' ? 'Activate member' : 'Deactivate member'}
         message={
           confirmStatus?.status === 'active'
-            ? `${confirmStatus?.client.profile?.full_name} will be able to sign in and access shared documents.`
+            ? `${confirmStatus?.client.profile?.full_name} will be able to sign in and will automatically get access to all documents, upload permission, comments and chat.`
             : `${confirmStatus?.client.profile?.full_name} will be locked out immediately. Their shared documents remain preserved.`
         }
         confirmLabel={confirmStatus?.status === 'active' ? 'Activate' : 'Deactivate'}

@@ -17,6 +17,9 @@ export const ACTIVITY_ACTIONS = {
   CLIENT_CREATED: 'client_created',
   CLIENT_UPDATED: 'client_updated',
   CLIENT_STATUS: 'client_status_changed',
+  CLIENT_ACCESS_GRANTED_ALL: 'client_access_granted_all',
+  COMMENT_ADDED: 'comment_added',
+  COMMENT_DELETED: 'comment_deleted',
   PASSWORD_RESET: 'password_reset',
   PASSWORD_CHANGED: 'password_changed',
   SETTINGS_UPDATED: 'settings_updated'

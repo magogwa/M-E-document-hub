@@ -18,6 +18,7 @@ export interface ClientRow {
   organization: string | null;
   address: string | null;
   phone: string | null;
+  can_upload: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -63,6 +64,45 @@ export interface DocumentAccess {
   client_id: string;
   granted_by: string;
   granted_at: string;
+}
+
+export interface DocumentCommentRow {
+  id: string;
+  document_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+}
+
+export interface ConversationRow {
+  id: string;
+  participant_a: string;
+  participant_b: string;
+  last_message_at: string;
+  created_at: string;
+}
+
+export interface ChatMessageRow {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string;
+  read_at: string | null;
+  created_at: string;
+}
+
+export type NotificationType = 'document_upload';
+
+export interface NotificationRow {
+  id: string;
+  user_id: string;
+  actor_id: string | null;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  document_id: string | null;
+  read_at: string | null;
+  created_at: string;
 }
 
 export interface ActivityRow {

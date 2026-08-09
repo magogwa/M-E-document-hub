@@ -9,7 +9,6 @@ export const settingsRouter = Router();
 
 const updateSchema = z.object({
   appName: z.string().min(1).max(80).optional(),
-  allowClientUpload: z.boolean().optional(),
   allowClientRegistration: z.boolean().optional(),
   maxFileSizeMB: z.number().int().min(1).max(200).optional(),
   emailNotifications: z.boolean().optional(),
@@ -28,7 +27,6 @@ settingsRouter.get(
     res.json({
       settings: {
         appName: settings.appName,
-        allowClientUpload: settings.allowClientUpload,
         maxFileSizeMB: settings.maxFileSizeMB
       }
     });
