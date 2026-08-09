@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { Router } from 'express';
 import { z } from 'zod';
-import { supabase } from '../libs/supabase.js';
+import { supabase, authSupabase } from '../libs/supabase.js';
 import { AppError, asyncHandler } from '../libs/errors.js';
 import { authLimiter } from '../middlewares/rateLimit.js';
 import { requireAuth, type AuthRequest } from '../middlewares/auth.js';
@@ -90,12 +90,11 @@ authRouter.post(
   authLimiter,
   asyncHandler(async (req: AuthRequest, res) => {
     const { email, password } = loginSchema.parse(req.body);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await authSupabase.auth.signInWithPassword({ email, password });
     if (error || !data.session?.user) {
       throw AppError.forbidden('Invalid email or password.');
     }
     const user = data.session.user;
-    await supabase.auth.signOut({ scope: 'local' });
     const profile = await getProfileById(user.id);
     if (!profile) throw AppError.forbidden('Access denied. Your account could not be found.');
     if (profile.status !== 'active') {
@@ -132,11 +131,10 @@ authRouter.post(
   asyncHandler(async (req: AuthRequest, res) => {
     const schema = z.object({ refreshToken: z.string().min(10) });
     const { refreshToken } = schema.parse(req.body);
-    const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+    const { data, error } = await authSupabase.auth.refreshSession({ refresh_token: refreshToken });
     if (error || !data.session) {
       throw AppError.unauthorized('Your session has expired. Please sign in again.');
     }
-    await supabase.auth.signOut({ scope: 'local' });
     const profile = await getProfileById(data.session.user.id);
     if (!profile || profile.status !== 'active') {
       throw AppError.forbidden('Access denied. Your account is not active.');

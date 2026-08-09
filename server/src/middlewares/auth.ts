@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { supabase } from '../libs/supabase.js';
+import { supabase, authSupabase } from '../libs/supabase.js';
 import { AppError, asyncHandler } from '../libs/errors.js';
 import type { UserProfile } from '../types.js';
 
@@ -19,7 +19,7 @@ export const requireAuth = asyncHandler(
     const token = extractBearer(req);
     if (!token) throw AppError.unauthorized('Your session has expired. Please sign in again.');
 
-    const { data, error } = await supabase.auth.getUser(token);
+    const { data, error } = await authSupabase.auth.getUser(token);
     if (error || !data.user) {
       throw AppError.unauthorized('Your session has expired. Please sign in again.');
     }
