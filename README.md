@@ -49,7 +49,8 @@ me-document-hub/
 │   │   ├── services/            activity, email, access, storage, settings, clients
 │   │   └── routes/              api router + controllers
 │   ├── tests/          Vitest suite (auth, documents, access, clients, categories, settings)
-│   └── render.yaml     Render.com service definition
+│   └── ...           (backend code lives in server/src)
+├── render.yaml      Render.com blueprint (root-level, service rootDir=server)
 ├── client/            React 18 + Vite 6 + Tailwind 3
 │   ├── src/
 │   │   ├── lib/        api client (token refresh), auth context, guards, format helpers
@@ -154,7 +155,7 @@ supported path.
 
 ### Backend — Render
 
-`server/render.yaml` defines a Node web service (`render deploy blueprint server/render.yaml`).
+`render.yaml` (repo root) defines a Node web service (`render deploy blueprint render.yaml`).
 Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `APP_URL`, `EMAIL_API_KEY` in
 the Render dashboard. Remember to hit `/api/auth/setup-admin` once after first deploy.
 
