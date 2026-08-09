@@ -3,7 +3,7 @@ services:
     name: me-document-hub-api
     runtime: node
     rootDir: server
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: node dist/index.js
     healthCheckPath: /api/health
     plan: free
